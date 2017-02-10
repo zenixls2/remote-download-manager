@@ -1,0 +1,8 @@
+
+id
+user(email)
+time
+status -> notstart,downloadin,done,fail,delete
+progress
+url
+

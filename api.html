@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Remote Download Manager API Document 1.2.1</title>
+</head>
+<body>
+<h1>Remote Download Manager API Document 1.2.1</h1>
+<p>Qing-Cheng Li &lt;qc.linux at gmail.com&gt; 2011.12.13</p>
+<h2>Models</h2>
+<h3>Download</h3>
+<p>A <i>Download</i> record in our database has thos attributes:</p>
+<ul>
+    <li><b>user</b> <i>string</i> - the email of the owner of this download.</li>
+    <li><b>url</b> <i>string</i> - the url of this download.</li>
+    <li><b>create</b> <i>datetime</i> - the creating time of this download</li>
+    <li><b>update</b> <i>datetime</i> - the updating time of this download</li>
+    <li><b>status</b> <i>string</i> - the status of this download</li>
+    <li><b>progress</b> <i>float</i> - download progress, from 0.0 to 100.0. Default is 0.0</li>
+</ul>
+<p>And, each <i>Download</i> has a <b>id</b>, we can use it to get <i>Download</i> object.</p>
+<h4>About <i>Download</i> status</h4>
+<p>A <i>Download</i> has those status:</p>
+<ul>
+    <li><b>queue</b> - before donwload starting.</li>
+    <li><b>download</b> - donwloading.</li>
+    <li><b>done</b> - after download.</li>
+    <li><b>fail</b> - download fail.</li>
+    <li><b>cancel</b> - donwload canceled.</li>
+    <li><b>delete</b> - this donwload was deleted, which means the user can not query this <i>Donwload</i> object.</li>
+</ul>
+<p>Here is the state machine:</p>
+<img src='/download_status.png' />
+<h2>APIs</h2>
+<h3>/API/add</h3>
+<p>Create a new <i>Download</i></p>
+<ul>
+    <li>POST</li>
+    <ul>
+        <li>user - <i>JSON String</i> - The e-mail of user.</li>
+        <li>url - <i>JSON String</i> - The URL which user wants to donwload.</li>
+    </ul>
+    <li>Return</li>
+    <ul>
+        <li>id - <i>JSON Number (int)</i> - id = -1 when fail, id &gt;0 otherwise.</li>
+    </ul>
+</ul>
+<form action='/API/add' method='post' >
+<fieldset>
+    <legend>Test /API/add</legend>
+    <label for='user'>user</label>
+	<input size='50' name='user' value='"{{ user }}"'></input>
+    <br/>
+    <label for='url'>url</label>
+    <input size='50' name='url' value='"http://qcl.tw/nothing.rar"'></input>
+    <br/>
+    <input type='submit' value='Test /API/add'></input>
+</fieldset>
+</form>
+<h3>/API/get</h3>
+<p>Query <i>Download</i> record by type</p>
+<ul>
+    <li>POST</li>
+    <ul>
+		<li>user - <i>JSON String</i> - The e-mail of user.</li>
+        <li>type - <i>JSON String</i> - Type only can be <b>all</b>, <b>queue</b>, <b>download</b>, <b>done</b>, <b>fail</b>, <b>cancel</b></li>
+    </ul>
+    <li>Return</li>
+    <ul>
+        <li>query results - <i>JSON Object array</i></li>
+        <pre>
+        [
+            {"id":int,
+             "url":string,
+             "status":string,
+             "create":string,
+             "update":string,
+             "progress":float
+            },
+        ]
+        </pre>
+    </ul>
+</ul>
+<form action='/API/get' method='post' >
+<fieldset>
+    <legend>Test /API/get</legend>
+    <label for='user'>user</label>
+	<input size='50' name='user' value='"{{ user }}"'></input>
+    <br/>
+    <label for='type'>type</label>
+    <input size='50' name='type' value='"all"'></input>
+    <br/>
+    <input type='submit' value='Test /API/get'></input>
+</fieldset>
+</form>
+<h3>/API/getById</h3>
+<p>Query <i>Download</i> record by id</p>
+<ul>
+    <li>POST</li>
+    <ul>
+		<li>user - <i>JSON String</i> - The e-mail of user.</li>
+        <li>id - <i>JSON Number (int)</i></li>
+    </ul>
+    <li>Return</li>
+    <ul>
+        <li>query result - <i>JSON Object</i> - Please check the value of id, if id = -1, it menas that this query fail</li>
+        <pre>
+        {"id":int,
+         "url":string,
+         "status":string,
+         "create":string,
+         "update":string,
+         "progress":float
+        }
+        </pre>
+    </ul>
+</ul>
+<form action='/API/getById' method='post' >
+<fieldset>
+    <legend>Test /API/getById</legend>
+    <label for='user'>user</label>
+	<input size='50' name='user' value='"{{ user }}"'></input>
+    <br/>
+    <label for='id'>id</label>
+    <input size='50' name='id' value='2'></input>
+    <br/>
+    <input type='submit' value='Test /API/getById'></input>
+</fieldset>
+</form>
+<h3>/API/upd</h3>
+<p>Update <i>Download</i></p>
+<ul>
+    <li>POST</li>
+    <ul>
+		<li>user - <i>JSON String</i> - The e-mail of user.</li>
+        <li>update - <i>JSON Object array</i> - The status only can be <b>queue</b>, <b>download</b>, <b>done</b>, <b>fail</b>, <b>cancel</b>, <b>delete</b>.</li>
+        <pre>
+        [
+            {"id":int,          //which download you wnat to update
+             "status":string,   //new status
+             "progress":float   //new progress
+            },
+        ]
+        </pre>
+    </ul>
+    <li>Return</li>
+    <ul>
+        <li>success list - <i>JSON Object array</i> - array of id and update time of updating successfully</li>
+        <pre>
+        [
+            {"id":int,
+             "update":string
+            },
+        ]
+        </pre>
+    </ul>
+</ul>
+<form action='/API/upd' method='post' >
+<fieldset>
+    <legend>Test /API/upd</legend>
+    <label for='user'>user</label>
+	<input size='50' name='user' value='"{{ user }}"'></input>
+    <br/>
+    <label for='update'>update</label>
+    <input size='50' name='update' value='[{"id":2,"status":"download","progress":10.0}]'></input>
+    <br/>
+    <input type='submit' value='Test /API/upd'></input>
+</fieldset>
+</form>
+
+<h3>/API/getByTime</h3>
+<p>Query <i>Download</i> record by time</p>
+<ul>
+    <li>POST</li>
+    <ul>
+		<li>user - <i>JSON String</i> - The e-mail of user.</li>
+        <li>time - <i>JSON String</i> - timestamp</li>
+    </ul>
+    <li>Return</li>
+    <ul>
+        <li>query results - <i>JSON Object array</i></li>
+        <pre>
+        [
+            {"id":int,
+             "url":string,
+             "status":string,
+             "create":string,
+             "update":string,
+             "progress":float
+            },
+        ]
+        </pre>
+    </ul>
+</ul>
+<form action='/API/getByTime' method='post' >
+<fieldset>
+    <legend>Test /API/getByTime</legend>
+    <label for='user'>user</label>
+	<input size='50' name='user' value='"{{ user }}"'></input>
+    <br/>
+    <label for='time'>time</label>
+    <input size='50' name='time' value='"2011-12-13 13:11:15.794282"'></input>
+    <br/>
+    <input type='submit' value='Test /API/getByTime'></input>
+</fieldset>
+</form>
+
+
+</body>
+</html>

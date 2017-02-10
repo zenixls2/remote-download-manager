@@ -1,0 +1,22 @@
+runtime: python27
+api_version: 1
+threadsafe: false
+
+handlers:
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+- url: /icon\.png
+  static_files: icon.png
+  upload: icon\.png
+
+- url: /download_status.png
+  static_files: download_status.png
+  upload: download_status\.png
+
+- url: /API/.*
+  script: api.py
+
+- url: .*
+  script: main.py
